@@ -1,6 +1,5 @@
-import os
 import cv2
-import shutil
+import os
 import mediapipe as mp
 import numpy as np
 from deepface import DeepFace
@@ -24,8 +23,9 @@ face_detection = mp_face_detection.FaceDetection()
 # Start capturing video from the default camera
 cap = cv2.VideoCapture(0)
 
-target_image_path = "Target_Faces"
-matching_dir = "Face_Matching_Directory"
+# Load the target image for face matching
+target_image_path = "Target_Faces/"
+target_image = cv2.imread(target_image_path)
 
 # Initialize variables to track face verification result
 face_verified = " "
@@ -60,34 +60,21 @@ while True:
             # Perform face matching
             try:
                 for file in os.listdir(target_image_path):
-                    if not os.path.exists(matching_dir):
-                        os.makedirs(matching_dir)
-                    img = os.path.join(target_image_path,file)
-                    save_path = os.path.join(matching_dir,str(file))
-                    cv2.imwrite(save_path,frame)
-                    print(str(save_path))
-                    result = DeepFace.verify(img1_path = str(save_path), img2_path = str(img), model_name='Facenet')
+                    if file.endswith('jpg'):
+                        result = DeepFace.verify(img1_path = os.path.join(target_image_path,file), img2_path = frame, model_name='VGG-Face')
                     if result["verified"]:
-                        face_verified = True
-                        text_f = str(file).split('.')
-                        face_text = text_f[0]
+                        face_verified = 'tttttt'
                         break
                     else:
                         face_verified = False
-                        face_text = "No Matches"
-                    shutil.rmtree(matching_dir)
-
-
             except Exception as e:
-                face_text = "Problem in Face detection"
-                shutil.rmtree(matching_dir)
                 print("Error:", str(e))
                 
             # Change text based on face verification result
             if face_verified:
-                cv2.putText(frame, face_text, (bbox[0], bbox[1] - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.9, (0, 255, 0), 2)
+                cv2.putText(frame, face_verified, (bbox[0], bbox[1] - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.9, (0, 255, 0), 2)
             else:
-                cv2.putText(frame, face_text, (bbox[0], bbox[1] - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.9, (0, 0, 255), 2)
+                cv2.putText(frame, "No", (bbox[0], bbox[1] - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.9, (0, 0, 255), 2)
 
     if hand_landmarks:
         for handLMs in hand_landmarks:
